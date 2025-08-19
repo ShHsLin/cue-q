@@ -36,10 +36,14 @@ def nice_print(vec, tolerance=1e-10):
     """
     Print the vector in a nice format
     """
-    n_qubits = int(np.log2(len(vec)))    
+    n_qubits = int(np.log2(len(vec)))
     for i in range(len(vec)):
         if vec[i] != 0 and abs(vec[i]) > tolerance:
-            print(f"{vec[i]} |{i:0{n_qubits}b}>")
+            bit_string = f"{i:0{n_qubits}b}"
+            counts_0 = bit_string.count('0')
+            counts_1 = bit_string.count('1')
+            print(f"{vec[i]} |{i:0{n_qubits}b}>, "
+                  f"counts_0: {counts_0}, counts_1: {counts_1}")
     print("")
 
 def niceprint(v, tol=1e-4):
