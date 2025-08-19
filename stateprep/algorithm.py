@@ -395,17 +395,20 @@ def polar_opt(qubit_circuit,
     # Definte the objective function
     def get_cost(num_states, list_of_top_states, list_of_bottom_states):
         cost = num_states
+        infidelity_sum = num_states
         for state_idx in range(num_states):
             top_vec = list_of_top_states[state_idx].state_vector
             bottom_vec = list_of_bottom_states[state_idx].state_vector
             cost -= np.real(np.dot(top_vec.conj(), bottom_vec))
+            infidelity_sum -= np.square(np.abs(np.dot(top_vec.conj(), bottom_vec)))
 
-        return cost
+        avg_infidelity = infidelity_sum / num_states
+        return cost, avg_infidelity
 
     # Get the initial cost
-    cost = get_cost(num_states, list_of_top_states, list_of_bottom_states)
+    cost, avg_infidelity = get_cost(num_states, list_of_top_states, list_of_bottom_states)
     if verbose:
-        print('Initial error:', cost)
+        print('Initial error:', cost, "Avg infidelity:", avg_infidelity)
 
     # We now sweep from top to bottom
     for gate_idx in range(qubit_circuit.num_gates-1, -1, -1):
@@ -433,9 +436,9 @@ def polar_opt(qubit_circuit,
         for state_idx in range(num_states):
             list_of_top_states[state_idx].apply_gate(new_gate_conj, remove_indices)
 
-    cost = get_cost(num_states, list_of_top_states, list_of_bottom_states)
+    cost, avg_infidelity = get_cost(num_states, list_of_top_states, list_of_bottom_states)
     if verbose:
-        print('Sweep down to the bottom. The intermediate error:', cost)
+        print('Sweep down to the bottom. The intermediate error:', cost, "Avg infidelity:", avg_infidelity)
 
     for state_idx in range(num_states):
         assert np.allclose(list_of_bottom_states[state_idx].state_vector,
@@ -467,9 +470,9 @@ def polar_opt(qubit_circuit,
         for state_idx in range(num_states):
             list_of_bottom_states[state_idx].apply_gate(new_gate, remove_indices)
 
-    cost = get_cost(num_states, list_of_top_states, list_of_bottom_states)
+    cost, avg_infidelity = get_cost(num_states, list_of_top_states, list_of_bottom_states)
     if verbose:
-        print('Sweep up to the top. The intermediate error:', cost)
+        print('Sweep up to the top. The intermediate error:', cost, "Avg infidelity:", avg_infidelity)
 
     return cost, list_of_bottom_states
 
